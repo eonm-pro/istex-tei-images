@@ -91,3 +91,9 @@ Pour chaque balise `//tei:graphic` (espace de noms `http://www.tei-c.org/ns/1.0`
 | `total_image_calls`     | Nombre total de références avec une URL non vide, doublons inclus.                                 |
 | `empty_image_rows`      | Nombre total de références avec une URL NULL ou vide (`total_reference_rows - total_image_calls`). |
 | `unique_images`         | Nombre d'URLs distinctes et non vides dans toute la base.                                          |
+### `images_extensions` (vue, une ligne par extension)
+
+| **Colonne**             | **Description**                                                                                    |
+| ----------------------- | -------------------------------------------------------------------------------------------------- |
+| `extension`       | extensions des images (top 10) |
+| `nb` | Nombre d'images.                                               |
