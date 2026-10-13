@@ -67,7 +67,7 @@ SELECT
     COUNT(DISTINCT image_url)                                  AS unique_images
 FROM tei_image_references_clean;
 
-CREATE OR REPLACE VIEW extension AS 
+CREATE OR REPLACE VIEW images_extensions AS 
 SELECT
     regexp_extract(string_split(image_url, '/')[-1], '.+(\.[^.]+)$', 1) AS extension,
     count(*) AS nb
