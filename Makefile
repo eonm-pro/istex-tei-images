@@ -6,7 +6,7 @@
 #
 # Usage:
 #   make                # Run full pipeline
-#   make analyse        # Extract image URLs from TEI files
+#   make extract        # Extract image URLs from TEI files
 #   make create_db      # Create and initialize database from TSV
 #   make export         # Export analysis results
 #   make clean          # Remove generated files
@@ -19,8 +19,7 @@ DB_SCRIPT ?= sql/init.sql
 OUTPUT_DB ?= tei_images.db
 ANALYSIS_CSV ?= analysis_results.csv
 
-# --- Targets ---
-all: analyse create_db export
+all: extract create_db export
 
 $(TSV_GZ_FILE):
 	@echo "=== Analyzing TEI XML files ==="
@@ -28,18 +27,22 @@ $(TSV_GZ_FILE):
 	CORPUS_OUTPUT=$(CORPUS_DIR) ./scripts/extract_tei_images.sh
 	@echo "✓ TSV generated: $(TSV_GZ_FILE)"
 
-analyse: $(TSV_GZ_FILE)
+extract: $(TSV_GZ_FILE)
 
-create_db: $(TSV_GZ_FILE)
+$(OUTPUT_DB): $(TSV_GZ_FILE)
 	@echo "=== Creating and initializing DuckDB database ==="
 	@mkdir -p $(dir $(OUTPUT_DB))
 	TEI_IMAGES_TSV_PATH=$(TSV_GZ_FILE) duckdb -init $(DB_SCRIPT) $(OUTPUT_DB) 
 	@echo "✓ Database created and initialized: $(OUTPUT_DB)"
 
-export: create_db
+create_db: $(OUTPUT_DB)
+
+$(ANALYSIS_CSV): $(OUTPUT_DB)
 	@echo "=== Exporting analysis results ==="
 	duckdb -c "COPY (SELECT * FROM document_image_analysis) TO '$(ANALYSIS_CSV)' (HEADER, DELIMITER ',');" $(OUTPUT_DB)
 	@echo "✓ Results exported: $(ANALYSIS_CSV)"
+
+export: $(ANALYSIS_CSV)
 
 clean:
 	@echo "=== Cleaning up ==="
@@ -48,8 +51,8 @@ clean:
 
 help:
 	@echo "Available targets:"
-	@echo "  all       - Run full pipeline (analyse + create_db + export)"
-	@echo "  analyse   - Extract image URLs from TEI XML files"
+	@echo "  all       - Run full pipeline (extract + create_db + export)"
+	@echo "  extract   - Extract image URLs from TEI XML files"
 	@echo "  create_db - Create and initialize DuckDB database from TSV"
 	@echo "  export    - Export analysis results to CSV"
 	@echo "  clean     - Remove all generated files"
@@ -62,4 +65,4 @@ help:
 	@echo "  OUTPUT_DB     = $(OUTPUT_DB)"
 	@echo "  ANALYSIS_CSV  = $(ANALYSIS_CSV)"
 
-.PHONY: all analyse create_db export clean help
+.PHONY: all extract create_db export clean help
